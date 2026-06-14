@@ -195,6 +195,9 @@ async function initDatabase() {
       smoke INTEGER,
       wind_speed REAL,
       pressure REAL,
+      uwb_x REAL,
+      uwb_y REAL,
+      uwb_z REAL,
       timestamp TEXT DEFAULT (datetime('now', 'localtime'))
     )
   `);
@@ -293,6 +296,21 @@ async function initDatabase() {
   `);
 
   // ========== 插入默认数据 ==========
+
+  // 为已有表添加新列（如果不存在的话）
+  const alterStatements = [
+    "ALTER TABLE sensor_data ADD COLUMN uwb_x REAL",
+    "ALTER TABLE sensor_data ADD COLUMN uwb_y REAL",
+    "ALTER TABLE sensor_data ADD COLUMN uwb_z REAL"
+  ];
+  for (const sql of alterStatements) {
+    try { wrappedDb.exec(sql); } catch (e) {
+      // 列已存在则忽略（duplicate column name）
+      if (!e.message.includes('duplicate column')) {
+        console.log('[DB] ALTER跳过:', e.message);
+      }
+    }
+  }
 
   // 默认告警阈值
   const thresholds = [

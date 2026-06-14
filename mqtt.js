@@ -123,8 +123,8 @@ function handleSensorData(msgStr) {
     // 传感器数据入库
     const db = getDb();
     const stmt = db.prepare(`
-      INSERT INTO sensor_data (device_id, temperature, humidity, light, smoke, wind_speed, pressure)
-      VALUES (?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO sensor_data (device_id, temperature, humidity, light, smoke, wind_speed, pressure, uwb_x, uwb_y, uwb_z)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `);
     
     stmt.run(
@@ -134,7 +134,10 @@ function handleSensorData(msgStr) {
       data.light ?? null,
       data.smoke ?? null,
       data.wind_speed ?? null,
-      data.pressure ?? null
+      data.pressure ?? null,
+      data.uwb_x ?? null,
+      data.uwb_y ?? null,
+      data.uwb_z ?? null
     );
 
     // 更新设备最后在线时间
@@ -146,7 +149,7 @@ function handleSensorData(msgStr) {
     // 检查告警阈值
     checkAlertThresholds(data);
 
-    console.log(`[DB] 传感器数据已入库: temp=${data.temp}, humi=${data.humi}, light=${data.light}, smoke=${data.smoke}`);
+    console.log(`[DB] 传感器数据已入库: temp=${data.temp}, humi=${data.humi}, light=${data.light}, smoke=${data.smoke}, wind=${data.wind_speed}, pressure=${data.pressure}, uwb=(${data.uwb_x},${data.uwb_y},${data.uwb_z})`);
 
     // 触发回调
     if (onSensorDataCallback) onSensorDataCallback(data);

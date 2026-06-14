@@ -63,7 +63,7 @@ router.get('/history', (req, res) => {
     }
 
     const data = db.prepare(`
-      SELECT id, temperature, humidity, light, smoke, wind_speed, pressure, timestamp
+      SELECT id, temperature, humidity, light, smoke, wind_speed, pressure, uwb_x, uwb_y, uwb_z, timestamp
       FROM sensor_data 
       WHERE device_id = ? ${timeFilter}
       ORDER BY timestamp ASC
@@ -118,16 +118,16 @@ router.get('/export', (req, res) => {
     }
 
     const data = db.prepare(`
-      SELECT timestamp, temperature, humidity, light, smoke, wind_speed, pressure
+      SELECT timestamp, temperature, humidity, light, smoke, wind_speed, pressure, uwb_x, uwb_y, uwb_z
       FROM sensor_data 
       WHERE device_id = ? ${timeFilter}
       ORDER BY timestamp ASC
     `).all(deviceId);
 
     // 构建 CSV
-    let csv = 'timestamp,temperature,humidity,light,smoke,wind_speed,pressure\n';
+    let csv = 'timestamp,temperature,humidity,light,smoke,wind_speed,pressure,uwb_x,uwb_y,uwb_z\n';
     for (const row of data) {
-      csv += `${row.timestamp},${row.temperature ?? ''},${row.humidity ?? ''},${row.light ?? ''},${row.smoke ?? ''},${row.wind_speed ?? ''},${row.pressure ?? ''}\n`;
+      csv += `${row.timestamp},${row.temperature ?? ''},${row.humidity ?? ''},${row.light ?? ''},${row.smoke ?? ''},${row.wind_speed ?? ''},${row.pressure ?? ''},${row.uwb_x ?? ''},${row.uwb_y ?? ''},${row.uwb_z ?? ''}\n`;
     }
 
     res.setHeader('Content-Type', 'text/csv; charset=utf-8');
