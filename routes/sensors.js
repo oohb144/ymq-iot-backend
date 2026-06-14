@@ -168,4 +168,28 @@ router.get('/stats', (req, res) => {
   }
 });
 
+// POST /api/sensors/inject - 测试用：手动注入传感器数据
+router.post('/inject', (req, res) => {
+  try {
+    const db = getDb();
+    const d = req.body;
+    db.prepare(`
+      INSERT INTO sensor_data (device_id, temperature, humidity, light, smoke, wind_speed, pressure, uwb_x, uwb_y, uwb_z)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `).run(
+      d.device_id || 'ESP8266_001',
+      d.temp ?? null, d.humi ?? null, d.light ?? null, d.smoke ?? null,
+      d.wind_speed ?? null, d.pressure ?? null,
+      d.uwb_x ?? null, d.uwb_y ?? null, d.uwb_z ?? null
+    );
+    // 同时通过 MQTT 发布，触发实时回调
+    const { publishControl } = require('../mqtt');
+    const topic = process.env.BEMFA_TOPIC_SENSOR || 'sensorData';
+    publishControl(topic, JSON.stringify(d)).catch(() => {});
+    res.json({ code: 0, message: '数据已注入' });
+  } catch (err) {
+    res.status(500).json({ code: 500, message: '注入失败: ' + err.message });
+  }
+});
+
 module.exports = router;
