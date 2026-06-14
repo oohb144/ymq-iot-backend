@@ -62,8 +62,7 @@ router.post('/training/mode', authMiddleware, async (req, res) => {
     const db = getDb();
     db.prepare(`
       UPDATE training_records SET mode = ?, status = 'running'
-      WHERE device_id = 'ESP8266_001' AND status = 'running'
-      ORDER BY created_at DESC LIMIT 1
+      WHERE id = (SELECT id FROM training_records WHERE device_id = 'ESP8266_001' AND status = 'running' ORDER BY created_at DESC LIMIT 1)
     `).run(mode);
 
     addDeviceLog('ESP8266_001', 'mode_change', 'info', 
@@ -105,8 +104,7 @@ router.post('/training/action', authMiddleware, async (req, res) => {
         UPDATE training_records SET status = ?, 
           ${action === 'stop' ? "ended_at = datetime('now', 'localtime')," : ''}
           updated_at = datetime('now', 'localtime')
-        WHERE device_id = 'ESP8266_001' AND status IN ('running', 'paused')
-        ORDER BY created_at DESC LIMIT 1
+        WHERE id = (SELECT id FROM training_records WHERE device_id = 'ESP8266_001' AND status IN ('running', 'paused') ORDER BY created_at DESC LIMIT 1)
       `).run(statusMap[action]);
     }
 
