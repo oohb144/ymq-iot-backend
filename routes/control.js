@@ -101,9 +101,8 @@ router.post('/training/action', authMiddleware, async (req, res) => {
     } else {
       // 更新现有训练状态
       db.prepare(`
-        UPDATE training_records SET status = ?, 
-          ${action === 'stop' ? "ended_at = datetime('now', 'localtime')," : ''}
-          updated_at = datetime('now', 'localtime')
+        UPDATE training_records SET status = ?
+          ${action === 'stop' ? ", ended_at = datetime('now', 'localtime')" : ''}
         WHERE id = (SELECT id FROM training_records WHERE device_id = 'ESP8266_001' AND status IN ('running', 'paused') ORDER BY created_at DESC LIMIT 1)
       `).run(statusMap[action]);
     }

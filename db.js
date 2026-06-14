@@ -245,13 +245,6 @@ async function initDatabase() {
     )
   `);
 
-  // 兼容旧数据库：添加 updated_at 列（如果不存在）
-  try {
-    wrappedDb.exec(`ALTER TABLE training_records ADD COLUMN updated_at TEXT DEFAULT (datetime('now', 'localtime'))`);
-  } catch (e) {
-    // 列已存在则忽略错误
-  }
-
   wrappedDb.exec(`
     CREATE TABLE IF NOT EXISTS position_data (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
