@@ -90,6 +90,54 @@ router.get('/stats', (req, res) => {
   }
 });
 
+// GET /api/training/trend - 每日训练趋势（最近30天）
+router.get('/trend', (req, res) => {
+  try {
+    const db = getDb();
+    const days = parseInt(req.query.days) || 30;
+    const trend = db.prepare(`
+      SELECT 
+        date(created_at) as date,
+        COUNT(*) as sessions,
+        SUM(duration_minutes) as total_minutes,
+        SUM(serving_count) as total_servings,
+        AVG(accuracy) as avg_accuracy,
+        MAX(max_speed) as max_speed
+      FROM training_records 
+      WHERE created_at > datetime('now', '-' || ? || ' days', 'localtime') AND status = 'completed'
+      GROUP BY date(created_at)
+      ORDER BY date ASC
+    `).all(days);
+    res.json({ code: 0, data: trend });
+  } catch (err) {
+    res.status(500).json({ code: 500, message: '服务器错误' });
+  }
+});
+
+// GET /api/training/live - 实时训练数据
+router.get('/live', (req, res) => {
+  try {
+    const db = getDb();
+    const latest = db.prepare(`
+      SELECT motor_rpm, serving_speed, serving_count, accuracy, training_mode, training_status,
+             uwb_x, uwb_y, player_x, player_y
+      FROM sensor_data ORDER BY timestamp DESC LIMIT 1
+    `).get();
+    
+    // Get last 20 sensor readings for live chart
+    const history = db.prepare(`
+      SELECT serving_speed, accuracy, timestamp
+      FROM sensor_data 
+      WHERE serving_speed IS NOT NULL
+      ORDER BY timestamp DESC LIMIT 20
+    `).all().reverse();
+    
+    res.json({ code: 0, data: { current: latest || null, speed_history: history } });
+  } catch (err) {
+    res.status(500).json({ code: 500, message: '服务器错误' });
+  }
+});
+
 // GET /api/training/:id - 获取训练详情
 router.get('/:id', (req, res) => {
   try {

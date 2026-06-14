@@ -122,9 +122,13 @@ function handleSensorData(msgStr) {
 
     // 传感器数据入库
     const db = getDb();
+    const zoneHitsJson = data.zone_hits ? JSON.stringify(data.zone_hits) : null;
     const stmt = db.prepare(`
-      INSERT INTO sensor_data (device_id, temperature, humidity, light, smoke, wind_speed, pressure, uwb_x, uwb_y, uwb_z)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO sensor_data (device_id, temperature, humidity, light, smoke, wind_speed, pressure, uwb_x, uwb_y, uwb_z,
+        motor_rpm, serving_speed, serving_count, accuracy, training_mode, training_status,
+        battery_level, runtime_seconds, wifi_rssi, error_count,
+        player_x, player_y, movement_distance, max_player_speed, zone_hits)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `);
     
     stmt.run(
@@ -137,19 +141,36 @@ function handleSensorData(msgStr) {
       data.pressure ?? null,
       data.uwb_x ?? null,
       data.uwb_y ?? null,
-      data.uwb_z ?? null
+      data.uwb_z ?? null,
+      data.motor_rpm ?? null,
+      data.serving_speed ?? null,
+      data.serving_count ?? null,
+      data.accuracy ?? null,
+      data.training_mode ?? null,
+      data.training_status ?? null,
+      data.battery_level ?? null,
+      data.runtime_seconds ?? null,
+      data.wifi_rssi ?? null,
+      data.error_count ?? null,
+      data.player_x ?? null,
+      data.player_y ?? null,
+      data.movement_distance ?? null,
+      data.max_player_speed ?? null,
+      zoneHitsJson
     );
 
-    // 更新设备最后在线时间
+    // 更新设备最后在线时间、电池电量、运行时长、信号强度
     db.prepare(`
-      UPDATE devices SET last_seen = datetime('now', 'localtime'), status = 'online', updated_at = datetime('now', 'localtime')
+      UPDATE devices SET last_seen = datetime('now', 'localtime'), status = 'online',
+        battery_level = ?, runtime_seconds = ?, rssi = ?,
+        updated_at = datetime('now', 'localtime')
       WHERE device_id = 'ESP8266_001'
-    `).run();
+    `).run(data.battery_level ?? null, data.runtime_seconds ?? null, data.wifi_rssi ?? null);
 
     // 检查告警阈值
     checkAlertThresholds(data);
 
-    console.log(`[DB] 传感器数据已入库: temp=${data.temp}, humi=${data.humi}, light=${data.light}, smoke=${data.smoke}, wind=${data.wind_speed}, pressure=${data.pressure}, uwb=(${data.uwb_x},${data.uwb_y},${data.uwb_z})`);
+    console.log(`[DB] 传感器数据已入库: temp=${data.temp}, humi=${data.humi}, light=${data.light}, smoke=${data.smoke}, wind=${data.wind_speed}, pressure=${data.pressure}, uwb=(${data.uwb_x},${data.uwb_y},${data.uwb_z}), motor_rpm=${data.motor_rpm}, serving_speed=${data.serving_speed}, serving_count=${data.serving_count}, accuracy=${data.accuracy}, training_mode=${data.training_mode}, battery=${data.battery_level}, runtime=${data.runtime_seconds}, wifi_rssi=${data.wifi_rssi}`);
 
     // 触发回调
     if (onSensorDataCallback) onSensorDataCallback(data);

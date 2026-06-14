@@ -63,7 +63,10 @@ router.get('/history', (req, res) => {
     }
 
     const data = db.prepare(`
-      SELECT id, temperature, humidity, light, smoke, wind_speed, pressure, uwb_x, uwb_y, uwb_z, timestamp
+      SELECT id, temperature, humidity, light, smoke, wind_speed, pressure, uwb_x, uwb_y, uwb_z,
+        motor_rpm, serving_speed, serving_count, accuracy, training_mode, training_status,
+        battery_level, runtime_seconds, wifi_rssi, error_count,
+        player_x, player_y, movement_distance, max_player_speed, zone_hits, timestamp
       FROM sensor_data 
       WHERE device_id = ? ${timeFilter}
       ORDER BY timestamp ASC

@@ -127,6 +127,32 @@ app.get('/api/dashboard', (req, res) => {
   }
 });
 
+// System status
+app.get('/api/system/status', (req, res) => {
+  try {
+    const db = require('./db').getDb();
+    const sensorCount = db.prepare('SELECT COUNT(*) as count FROM sensor_data').get();
+    const trainingCount = db.prepare('SELECT COUNT(*) as count FROM training_records').get();
+    const deviceCount = db.prepare('SELECT COUNT(*) as count FROM devices').get();
+    const onlineCount = db.prepare("SELECT COUNT(*) as count FROM devices WHERE status = 'online'").get();
+    
+    res.json({
+      code: 0,
+      data: {
+        uptime_seconds: Math.floor(process.uptime()),
+        total_sensor_records: sensorCount.count,
+        total_training_records: trainingCount.count,
+        total_devices: deviceCount.count,
+        online_devices: onlineCount.count,
+        mqtt_connected: require('./mqtt').getMqttClient()?.connected || false,
+        timestamp: new Date().toISOString()
+      }
+    });
+  } catch (err) {
+    res.status(500).json({ code: 500, message: '服务器错误' });
+  }
+});
+
 // 404 处理
 app.use((req, res) => {
   res.status(404).json({ code: 404, message: `路由不存在: ${req.method} ${req.path}` });

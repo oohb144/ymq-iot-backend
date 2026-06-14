@@ -198,6 +198,21 @@ async function initDatabase() {
       uwb_x REAL,
       uwb_y REAL,
       uwb_z REAL,
+      motor_rpm INTEGER,
+      serving_speed REAL,
+      serving_count INTEGER,
+      accuracy REAL,
+      training_mode TEXT,
+      training_status TEXT,
+      battery_level INTEGER,
+      runtime_seconds INTEGER,
+      wifi_rssi INTEGER,
+      error_count INTEGER,
+      player_x REAL,
+      player_y REAL,
+      movement_distance REAL,
+      max_player_speed REAL,
+      zone_hits TEXT,
       timestamp TEXT DEFAULT (datetime('now', 'localtime'))
     )
   `);
@@ -301,7 +316,22 @@ async function initDatabase() {
   const alterStatements = [
     "ALTER TABLE sensor_data ADD COLUMN uwb_x REAL",
     "ALTER TABLE sensor_data ADD COLUMN uwb_y REAL",
-    "ALTER TABLE sensor_data ADD COLUMN uwb_z REAL"
+    "ALTER TABLE sensor_data ADD COLUMN uwb_z REAL",
+    "ALTER TABLE sensor_data ADD COLUMN motor_rpm INTEGER",
+    "ALTER TABLE sensor_data ADD COLUMN serving_speed REAL",
+    "ALTER TABLE sensor_data ADD COLUMN serving_count INTEGER",
+    "ALTER TABLE sensor_data ADD COLUMN accuracy REAL",
+    "ALTER TABLE sensor_data ADD COLUMN training_mode TEXT",
+    "ALTER TABLE sensor_data ADD COLUMN training_status TEXT",
+    "ALTER TABLE sensor_data ADD COLUMN battery_level INTEGER",
+    "ALTER TABLE sensor_data ADD COLUMN runtime_seconds INTEGER",
+    "ALTER TABLE sensor_data ADD COLUMN wifi_rssi INTEGER",
+    "ALTER TABLE sensor_data ADD COLUMN error_count INTEGER",
+    "ALTER TABLE sensor_data ADD COLUMN player_x REAL",
+    "ALTER TABLE sensor_data ADD COLUMN player_y REAL",
+    "ALTER TABLE sensor_data ADD COLUMN movement_distance REAL",
+    "ALTER TABLE sensor_data ADD COLUMN max_player_speed REAL",
+    "ALTER TABLE sensor_data ADD COLUMN zone_hits TEXT"
   ];
   for (const sql of alterStatements) {
     try { wrappedDb.exec(sql); } catch (e) {
